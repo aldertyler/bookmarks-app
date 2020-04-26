@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import BookmarksContext from "../BookmarksContext";
 import config from "../config";
+import PropTypes from "prop-types";
 import "./AddBookmark.css";
 
 const Required = () => <span className="AddBookmark__required">*</span>;
@@ -119,5 +120,17 @@ class AddBookmark extends Component {
     );
   }
 }
+
+AddBookmark.propTypes = {
+  title: PropTypes.string.isRequired,
+  url: PropTypes.string.isRequired,
+  rating: PropTypes.number,
+  description: PropTypes.string,
+};
+
+AddBookmark.defaultProps = {
+  rating: 1,
+  description: "",
+};
 
 export default AddBookmark;
