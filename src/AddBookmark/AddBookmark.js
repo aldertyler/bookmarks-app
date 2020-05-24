@@ -1,12 +1,18 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import BookmarksContext from "../BookmarksContext";
 import config from "../config";
-import PropTypes from "prop-types";
 import "./AddBookmark.css";
 
 const Required = () => <span className="AddBookmark__required">*</span>;
 
 class AddBookmark extends Component {
+  static propTypes = {
+    history: PropTypes.shape({
+      push: PropTypes.func,
+    }).isRequired,
+  };
+
   static contextType = BookmarksContext;
 
   state = {
@@ -21,7 +27,7 @@ class AddBookmark extends Component {
       title: title.value,
       url: url.value,
       description: description.value,
-      rating: rating.value,
+      rating: Number(rating.value),
     };
     this.setState({ error: null });
     fetch(config.API_ENDPOINT, {
@@ -34,11 +40,7 @@ class AddBookmark extends Component {
     })
       .then((res) => {
         if (!res.ok) {
-          // get the error message from the response,
-          return res.json().then((error) => {
-            // then throw it
-            throw error;
-          });
+          return res.json().then((error) => Promise.reject(error));
         }
         return res.json();
       })
@@ -47,14 +49,16 @@ class AddBookmark extends Component {
         url.value = "";
         description.value = "";
         rating.value = "";
+        this.context.addBookmark(data);
         this.props.history.push("/");
       })
       .catch((error) => {
+        console.error(error);
         this.setState({ error });
       });
   };
 
-  handleClicksCancel = () => {
+  handleClickCancel = () => {
     this.props.history.push("/");
   };
 
@@ -120,42 +124,5 @@ class AddBookmark extends Component {
     );
   }
 }
-
-AddBookmark.propTypes = {
-  title: PropTypes.string.isRequired,
-  url: (props, propName, componentName) => {
-    // get the value of the prop
-    const prop = props[propName];
-
-    // do the isRequired check
-    if (!prop) {
-      return new Error(
-        `${propName} is required in ${componentName}. Validation Failed`
-      );
-    }
-
-    // check the type
-    if (typeof prop != "string") {
-      return new Error(
-        `Invalid prop, ${propName} is expected to be a string in ${componentName}. ${typeof prop} found.`
-      );
-    }
-
-    // do the custom check here
-    // using a simple regex
-    if (prop.length < 5 || !prop.match(new RegExp(/^https?:\/\//))) {
-      return new Error(
-        `Invalid prop, ${propName} must be min length 5 and begin http(s)://. Validation Failed.`
-      );
-    }
-  },
-  rating: PropTypes.number,
-  description: PropTypes.string,
-};
-
-AddBookmark.defaultProps = {
-  rating: 1,
-  description: "",
-};
 
 export default AddBookmark;
